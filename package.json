@@ -28,7 +28,8 @@
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
     "lintfix": "eslint nodes credentials package.json --fix",
-    "prepublishOnly": "pnpm build && pnpm lint -c .eslintrc.prepublish.js nodes credentials package.json"
+    "prepublishOnly": "pnpm build && pnpm lint -c .eslintrc.prepublish.js nodes credentials package.json",
+    "test": "jest"
   },
   "files": [
     "dist"
@@ -37,20 +38,26 @@
     "n8nNodesApiVersion": 1,
     "credentials": [
       "dist/credentials/ExampleCredentialsApi.credentials.js",
-      "dist/credentials/HttpBinApi.credentials.js"
+      "dist/credentials/HttpBinApi.credentials.js",
+      "dist/credentials/VLMRunApi.credentials.js"
     ],
     "nodes": [
       "dist/nodes/ExampleNode/ExampleNode.node.js",
-      "dist/nodes/HttpBin/HttpBin.node.js"
+      "dist/nodes/HttpBin/HttpBin.node.js",
+      "dist/nodes/VLMRunImageNode/VLMRunImageNode.node.js",
+      "dist/nodes/VLMRunDocumentNode/VLMRunDocumentNode.node.js"
     ]
   },
   "devDependencies": {
+    "@types/jest": "^29.5.12",
     "@typescript-eslint/parser": "^7.15.0",
     "eslint": "^8.56.0",
     "eslint-plugin-n8n-nodes-base": "^1.16.1",
     "gulp": "^4.0.2",
+    "jest": "^29.7.0",
     "n8n-workflow": "*",
     "prettier": "^3.3.2",
+    "ts-jest": "^29.2.5",
     "typescript": "^5.5.3"
   },
   "peerDependencies": {
