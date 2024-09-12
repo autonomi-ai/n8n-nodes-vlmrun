@@ -28,6 +28,7 @@
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
     "lintfix": "eslint nodes credentials package.json --fix",
+    "clean": "rm -rf dist",
     "prepublishOnly": "pnpm build && pnpm lint -c .eslintrc.prepublish.js nodes credentials package.json"
   },
   "files": [
@@ -37,11 +38,13 @@
     "n8nNodesApiVersion": 1,
     "credentials": [
       "dist/credentials/ExampleCredentialsApi.credentials.js",
-      "dist/credentials/HttpBinApi.credentials.js"
+      "dist/credentials/HttpBinApi.credentials.js",
+      "dist/credentials/VlmRunApi.credentials.js"
     ],
     "nodes": [
       "dist/nodes/ExampleNode/ExampleNode.node.js",
-      "dist/nodes/HttpBin/HttpBin.node.js"
+      "dist/nodes/HttpBin/HttpBin.node.js",
+      "dist/nodes/VlmRun/VlmRun.node.js"
     ]
   },
   "devDependencies": {
