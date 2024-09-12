@@ -26,7 +26,7 @@ export class ExampleNode implements INodeType {
 				name: 'myString',
 				type: 'string',
 				default: '',
-				placeholder: 'Placeholder value',
+				placeholder: 'Linkedin URL',
 				description: 'The description text',
 			},
 		],

@@ -1,19 +1,19 @@
 {
-  "name": "n8n-nodes-<...>",
+  "name": "n8n-nodes-vlmrun",
   "version": "0.1.0",
-  "description": "",
+  "description": "VLM Nodes for n8n",
   "keywords": [
     "n8n-community-node-package"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://vlm.run",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "Autonomi",
+    "email": "shahrear@autonomi.ai"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/<...>/n8n-nodes-<...>.git"
+    "url": "https://github.com/vlm-ai/n8n-nodes-vlm.git"
   },
   "engines": {
     "node": ">=18.10",
