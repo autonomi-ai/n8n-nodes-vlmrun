@@ -71,7 +71,7 @@ export const vlmRunOperations: INodeProperties[] = [
 				value: Operation.IMAGE_CAPTIONING,
 			},
 		],
-		default: Operation.IMAGE_CATALOGING,
+		default: Operation.IMAGE_CAPTIONING,
 	},
 	{
 		displayName: 'Operation',
