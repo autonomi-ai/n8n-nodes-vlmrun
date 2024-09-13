@@ -1,4 +1,4 @@
-![Banner image](https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png)
+<img width="1220" alt="image" src="https://github.com/user-attachments/assets/248dd464-066c-4d52-b937-12561fc6f98d">
 
 # n8n-nodes-vlmrun
 
