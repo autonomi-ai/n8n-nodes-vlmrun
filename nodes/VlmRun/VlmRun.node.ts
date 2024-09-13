@@ -2,11 +2,25 @@ import {
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeType,
+	IDataObject,
 	INodeTypeDescription,
 	NodeOperationError,
 } from 'n8n-workflow';
-import FormData from 'form-data';
-import { baseUrl } from './config';
+import {
+	generateDocumentRequest,
+	generateImageRequest,
+	getDocumentResponse,
+	uploadFile,
+} from './ApiService';
+import {
+	Domain,
+	DocumentRequest,
+	Resource,
+	Operation,
+	ImageRequest,
+	OperationToDomain,
+} from './types';
+import { vlmRunOperations, vlmRunOptions, vlmRunResources } from './VlmRunDescription';
 
 export class VlmRun implements INodeType {
 	description: INodeTypeDescription = {
@@ -29,133 +43,7 @@ export class VlmRun implements INodeType {
 			},
 		],
 
-		properties: [
-			{
-				displayName: 'Resource',
-				name: 'resource',
-				type: 'options',
-				noDataExpression: true,
-				options: [
-					{
-						name: 'Doc AI',
-						value: 'docAi',
-					},
-					{
-						name: 'Image AI',
-						value: 'imageAi',
-					},
-					{
-						name: 'File',
-						value: 'file',
-					},
-				],
-				default: 'docAi',
-			},
-			{
-				displayName: 'Operation',
-				name: 'operation',
-				type: 'options',
-				noDataExpression: true,
-				displayOptions: {
-					show: {
-						resource: ['docAi'],
-					},
-				},
-				options: [
-					{
-						name: 'Resume Parser',
-						value: 'resumeParser',
-					},
-					{
-						name: 'Invoice Parser',
-						value: 'invoiceParser',
-					},
-					{
-						name: 'Form Parser',
-						value: 'formParser',
-					},
-					{
-						name: 'Presentation Parser',
-						value: 'presentationParser',
-					},
-					{
-						name: 'AI-assisted Form Filling',
-						value: 'formFilling',
-					},
-				],
-				default: 'resumeParser',
-			},
-			{
-				displayName: 'Operation',
-				name: 'operation',
-				type: 'options',
-				noDataExpression: true,
-				displayOptions: {
-					show: {
-						resource: ['imageAi'],
-					},
-				},
-				options: [
-					{
-						name: 'Image Cataloging',
-						value: 'imageCataloging',
-					},
-					{
-						name: 'Image Captioning',
-						value: 'imageCaptioning',
-					},
-				],
-				default: 'imageCataloging',
-			},
-			{
-				displayName: 'Operation',
-				name: 'operation',
-				type: 'options',
-				noDataExpression: true,
-				displayOptions: {
-					show: {
-						resource: ['file'],
-					},
-				},
-				options: [
-					{
-						name: 'Upload',
-						value: 'upload',
-					},
-					{
-						name: 'Delete',
-						value: 'delete',
-					},
-					{
-						name: 'List',
-						value: 'list',
-					},
-				],
-				default: 'upload',
-			},
-			{
-				displayName: 'File',
-				name: 'file',
-				type: 'string',
-				default: 'data',
-				required: true,
-				description: 'File data from previous node',
-			},
-			{
-				displayName: 'Model',
-				name: 'model',
-				type: 'options',
-				noDataExpression: true,
-				options: [
-					{
-						name: 'VLM-1',
-						value: 'vlm-1',
-					},
-				],
-				default: 'vlm-1',
-				description: 'The model to use for processing',
-			},
-		],
+		properties: [vlmRunResources, ...vlmRunOperations, ...vlmRunOptions],
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
@@ -163,64 +51,59 @@ export class VlmRun implements INodeType {
 		const returnData: INodeExecutionData[] = [];
 		const resource = this.getNodeParameter('resource', 0) as string;
 		const operation = this.getNodeParameter('operation', 0) as string;
-		const credentials = (await this.getCredentials('vlmRunApi')) as { apiKey: string };
-		const binaryFile = this.getNodeParameter('file', 0) as string;
 		const model = this.getNodeParameter('model', 0) as string;
 
 		for (let i = 0; i < items.length; i++) {
 			try {
-				if (resource === 'docAi') {
-					if (operation === 'resumeParser') {
-						// const filePath = this.getNodeParameter('file', i) as string;
+				if (resource === Resource.DOCUMENT_AI) {
+					const validDocumentOperations = [
+						Operation.RESUME_PARSER,
+						Operation.INVOICE_PARSER,
+						Operation.PRESENTATION_PARSER,
+						Operation.FORM_FILLING,
+					];
+					if (validDocumentOperations.includes(operation)) {
+						console.log('Started Operation - ', operation);
 						const item = items[i];
-						if (!item.binary) {
-							throw new NodeOperationError(this.getNode(), 'No binary data exists on item!');
-						}
 
-						const binaryData = item.binary[binaryFile];
-						if (item.binary === undefined || binaryData === undefined) {
-							throw new NodeOperationError(
-								this.getNode(),
-								`No binary data property "${binaryFile}" does not exists on item!`,
-							);
-						}
+						const { buffer, fileName } = await processFile(this, item, i);
 
 						// Step 1: Upload file
-						const buffer = await this.helpers.getBinaryDataBuffer(i, binaryFile);
-
-						const form = new FormData();
-						// const fileContent = await this.helpers.binaryToBuffer(
-						// 	await this.helpers.getBinaryDataBuffer(i, 'file'),
-						// );
-						form.append('file', buffer, { filename: binaryData.fileName });
-
-						const uploadResponse = await this.helpers.httpRequest({
-							method: 'POST',
-							url: `${baseUrl}/files`,
-							headers: {
-								Authorization: `Bearer ${credentials.apiKey}`,
-							},
-							body: form,
-						});
-
-						const fileId = uploadResponse.id;
+						const fileResponse = await uploadFile(this, buffer, fileName);
+						this.sendMessageToUI('File uploaded...');
 
 						// Step 2: Generate structured output
-						const generateResponse = await this.helpers.httpRequest({
-							method: 'POST',
-							url: `${baseUrl}/document/generate`,
-							headers: {
-								Authorization: `Bearer ${credentials.apiKey}`,
-								'Content-Type': 'application/json',
-							},
-							body: JSON.stringify({
-								model: model,
-								file_id: fileId,
-							}),
-						});
+						const documentRequest: DocumentRequest = {
+							fileId: fileResponse.id,
+							model: model,
+							domain: OperationToDomain[operation],
+						};
+						const initialResponse = await generateDocumentRequest(this, documentRequest);
+						console.log('Initial Response - ', initialResponse);
+						if (initialResponse.status === 'completed') {
+							returnData.push({
+								json: initialResponse,
+							});
+							continue;
+						}
+
+						// Step 3: Check response every RETRY_DELAY milliseconds for MAX_ATTEMPTS
+						const documentResponse = await getDocumentResponse(this, initialResponse.id);
 
 						returnData.push({
-							json: generateResponse,
+							json: documentResponse,
+						});
+					}
+				} else if (resource === Resource.IMAGE_AI) {
+					if (
+						operation === Operation.IMAGE_CATALOGING ||
+						operation === Operation.IMAGE_CAPTIONING
+					) {
+						console.log('Started Operation - ', operation);
+						const item = items[i];
+						const imageResponse = await processImage(this, item);
+						returnData.push({
+							json: imageResponse,
 						});
 					}
 				}
@@ -235,4 +118,44 @@ export class VlmRun implements INodeType {
 
 		return [returnData];
 	}
+}
+
+async function processFile(
+	ef: IExecuteFunctions,
+	nodeData: INodeExecutionData,
+	i: number,
+): Promise<{ buffer: any; fileName: any }> {
+	const binaryFile = ef.getNodeParameter('file', 0) as string;
+
+	if (!nodeData.binary) {
+		throw new NodeOperationError(ef.getNode(), 'No binary data exists on item!');
+	}
+
+	const binaryData = nodeData.binary[binaryFile];
+	if (binaryData === undefined) {
+		throw new NodeOperationError(
+			ef.getNode(),
+			`No binary data property "${binaryFile}" does not exists on item!`,
+		);
+	}
+
+	const buffer = await ef.helpers.getBinaryDataBuffer(i, binaryFile);
+	const fileName = binaryData.fileName;
+	return { buffer, fileName };
+}
+
+async function processImage(ef: IExecuteFunctions, item: INodeExecutionData): Promise<IDataObject> {
+	const model = ef.getNodeParameter('model', 0) as string;
+	const binaryData = item.binary?.data;
+
+	if (!binaryData) {
+		throw new NodeOperationError(ef.getNode(), 'No binary data found!');
+	}
+	const imageRequest: ImageRequest = {
+		image: binaryData.data,
+		mimeType: binaryData.mimeType,
+		model: model,
+		domain: Domain.DocumentInvoice,
+	};
+	return await generateImageRequest(ef, imageRequest);
 }
