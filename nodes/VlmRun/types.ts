@@ -23,13 +23,20 @@ export interface PredictionResponse extends IDataObject {
 	status: string;
 }
 
-export interface FileResponse {
+export interface FileResponse extends IDataObject {
 	id: string;
 	filename: string;
 	bytes: number;
 	purpose: string;
 	created_at: string;
 	object?: string;
+}
+
+export interface WebpagePredictionRequest {
+	url: string;
+	model: string;
+	domain?: string;
+	mode: 'fast' | 'accurate';
 }
 
 export const Resource = {
@@ -49,6 +56,7 @@ export const Operation = {
 	FILE_LIST: 'fileList',
 	GITHUB_AGENT: 'githubAgent',
 	LINKEDIN_AGENT: 'linkedinAgent',
+	WEB_GENERATION: 'webGeneration',
 };
 
 export enum Domain {
@@ -109,5 +117,7 @@ export const OperationToDomain = {
 	[Operation.INVOICE_PARSER]: Domain.DocumentInvoice,
 	[Operation.PRESENTATION_PARSER]: Domain.DocumentPresentation,
 	[Operation.FORM_FILLING]: Domain.DocumentPdfAutofill,
-	[Operation.IMAGE_CAPTIONING]: Domain.ImageCaptioning,
+	[Operation.IMAGE_CAPTIONING]: Domain.DocumentGenerative,
+	// [Operation.IMAGE_CAPTIONING]: Domain.ImageCaptioning,
+	[Operation.GITHUB_AGENT]: Domain.WebGithubDeveloperStats,
 };

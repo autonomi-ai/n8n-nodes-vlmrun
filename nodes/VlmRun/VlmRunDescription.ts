@@ -129,9 +129,27 @@ export const vlmRunOptions: INodeProperties[] = [
 		description: 'File data from previous node',
 	},
 	{
+		displayName: 'URL',
+		name: 'url',
+		type: 'string',
+		displayOptions: {
+			show: {
+				resource: [Resource.AGENT_AI],
+			},
+		},
+		default: '',
+		required: true,
+		description: 'URL to generate webpage',
+	},
+	{
 		displayName: 'Model',
 		name: 'model',
 		type: 'options',
+		displayOptions: {
+			show: {
+				resource: [Resource.DOCUMENT_AI, Resource.IMAGE_AI, Resource.AGENT_AI],
+			},
+		},
 		options: [
 			{
 				name: 'VLM-1',
@@ -140,5 +158,27 @@ export const vlmRunOptions: INodeProperties[] = [
 		],
 		default: 'vlm-1',
 		description: 'The model to use for processing',
+	},
+	{
+		displayName: 'Mode',
+		name: 'mode',
+		type: 'options',
+		displayOptions: {
+			show: {
+				resource: [Resource.AGENT_AI],
+			},
+		},
+		options: [
+			{
+				name: 'Fast',
+				value: 'fast',
+			},
+			{
+				name: 'Accurate',
+				value: 'accurate',
+			},
+		],
+		default: 'accurate',
+		description: 'The mode to use for web generation',
 	},
 ];
