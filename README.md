@@ -33,6 +33,8 @@ These are the basic steps for working with the starter. For detailed guidance on
 8. Test your node locally. Refer to [Run your node locally](https://docs.n8n.io/integrations/creating-nodes/test/run-node-locally/) for guidance.
 
 ```
+export VLMRUN_API_BASE_URL='https://api.vlm.run/v1'
+echo $VLMRUN_API_BASE_URL
 (n8n-nodes-vlmrun)
 pnpm run build
 pnpm link --global
