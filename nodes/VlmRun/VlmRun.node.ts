@@ -9,16 +9,18 @@ import {
 import {
 	generateDocumentRequest,
 	generateImageRequest,
-	getDocumentResponse,
+	generateWebpageRequest,
+	getDocumentResponseWithRetry,
+	getFiles,
 	uploadFile,
 } from './ApiService';
 import {
-	Domain,
 	DocumentRequest,
 	Resource,
 	Operation,
 	ImageRequest,
 	OperationToDomain,
+	WebpagePredictionRequest,
 } from './types';
 import { vlmRunOperations, vlmRunOptions, vlmRunResources } from './VlmRunDescription';
 
@@ -51,7 +53,6 @@ export class VlmRun implements INodeType {
 		const returnData: INodeExecutionData[] = [];
 		const resource = this.getNodeParameter('resource', 0) as string;
 		const operation = this.getNodeParameter('operation', 0) as string;
-		const model = this.getNodeParameter('model', 0) as string;
 
 		for (let i = 0; i < items.length; i++) {
 			try {
@@ -62,6 +63,7 @@ export class VlmRun implements INodeType {
 						Operation.PRESENTATION_PARSER,
 						Operation.FORM_FILLING,
 					];
+					const model = this.getNodeParameter('model', 0) as string;
 					if (validDocumentOperations.includes(operation)) {
 						console.log('Started Operation - ', operation);
 						const item = items[i];
@@ -73,10 +75,12 @@ export class VlmRun implements INodeType {
 						this.sendMessageToUI('File uploaded...');
 
 						// Step 2: Generate structured output
+						// If batch is false, response is returned synchronously, otherwise asynchronously
 						const documentRequest: DocumentRequest = {
 							fileId: fileResponse.id,
 							model: model,
 							domain: OperationToDomain[operation],
+							batch: false,
 						};
 						const initialResponse = await generateDocumentRequest(this, documentRequest);
 						console.log('Initial Response - ', initialResponse);
@@ -88,7 +92,7 @@ export class VlmRun implements INodeType {
 						}
 
 						// Step 3: Check response every RETRY_DELAY milliseconds for MAX_ATTEMPTS
-						const documentResponse = await getDocumentResponse(this, initialResponse.id);
+						const documentResponse = await getDocumentResponseWithRetry(this, initialResponse.id);
 
 						returnData.push({
 							json: documentResponse,
@@ -104,6 +108,31 @@ export class VlmRun implements INodeType {
 						const imageResponse = await processImage(this, item);
 						returnData.push({
 							json: imageResponse,
+						});
+					}
+				} else if (resource === Resource.AGENT_AI) {
+					const model = this.getNodeParameter('model', 0) as string;
+					if (operation === Operation.GITHUB_AGENT) {
+						console.log('Started Operation - ', operation);
+						const url = this.getNodeParameter('url', 0) as string;
+						const mode = this.getNodeParameter('mode', 0) as 'fast' | 'accurate';
+
+						const webpageRequest: WebpagePredictionRequest = {
+							url: url,
+							model: model,
+							domain: OperationToDomain[operation],
+							mode: mode,
+						};
+						const webpageResponse = await generateWebpageRequest(this, webpageRequest);
+						returnData.push({
+							json: webpageResponse,
+						});
+					}
+				} else if (resource === Resource.FILE) {
+					if (operation === Operation.FILE_LIST) {
+						const files = await getFiles(this);
+						returnData.push({
+							json: { files: files },
 						});
 					}
 				}
@@ -146,6 +175,8 @@ async function processFile(
 
 async function processImage(ef: IExecuteFunctions, item: INodeExecutionData): Promise<IDataObject> {
 	const model = ef.getNodeParameter('model', 0) as string;
+	const operation = ef.getNodeParameter('operation', 0) as string;
+
 	const binaryData = item.binary?.data;
 
 	if (!binaryData) {
@@ -155,7 +186,8 @@ async function processImage(ef: IExecuteFunctions, item: INodeExecutionData): Pr
 		image: binaryData.data,
 		mimeType: binaryData.mimeType,
 		model: model,
-		domain: Domain.DocumentInvoice,
+		domain: OperationToDomain[operation],
 	};
+	console.log('imageRequest - ', imageRequest);
 	return await generateImageRequest(ef, imageRequest);
 }
