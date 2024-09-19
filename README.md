@@ -62,19 +62,19 @@ Refer to our [documentation on creating nodes](https://docs.n8n.io/integrations/
 
 Here are some screenshots of the n8n-nodes-vlmrun in action:
 
-![VLM Run Node Overview](https://raw.githubusercontent.com/autonomi-ai/n8n-nodes-vlmrun/refs/heads/master/assets/vlmrun-overview.png)
+![VLM Run Node Overview](assets/vlmrun-overview.png)
 _Overview of the VLM Run node in n8n_
 
-![VLM Run Node Configuration Resume Parser](https://raw.githubusercontent.com/autonomi-ai/n8n-nodes-vlmrun/refs/heads/master/assets/resume-parser.png)
+![VLM Run Node Configuration Resume Parser](assets/resume-parser.png)
 _Configuring the VLM Run node to parse resume_
 
-![VLM Run Node Configuration Invoice Parser](https://raw.githubusercontent.com/autonomi-ai/n8n-nodes-vlmrun/refs/heads/master/assets/invoice-parser.png)
+![VLM Run Node Configuration Invoice Parser](assets/invoice-parser.png)
 _Configuring the VLM Run node to parse invoice_
 
-![VLM Run Node Configuration Github Agent](https://raw.githubusercontent.com/autonomi-ai/n8n-nodes-vlmrun/refs/heads/master/assets/agent-api.png)
+![VLM Run Node Configuration Github Agent](assets/agent-api.png)
 _Configuring the VLM Run node to use the Github Agent_
 
-![VLM Run Workflow Example](https://raw.githubusercontent.com/autonomi-ai/n8n-nodes-vlmrun/refs/heads/master/assets/vlmrun-workflow.png)
+![VLM Run Workflow Example](assets/vlmrun-workflow.png)
 _Example workflow using the VLM Run node_
 
 ## License
