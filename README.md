@@ -65,15 +65,6 @@ Here are some screenshots of the n8n-nodes-vlmrun in action:
 ![VLM Run Node Overview](assets/vlmrun-overview.png)
 _Overview of the VLM Run node in n8n_
 
-![VLM Run Node Configuration Resume Parser](assets/resume-parser.png)
-_Configuring the VLM Run node to parse resume_
-
-![VLM Run Node Configuration Invoice Parser](assets/invoice-parser.png)
-_Configuring the VLM Run node to parse invoice_
-
-![VLM Run Node Configuration Github Agent](assets/agent-api.png)
-_Configuring the VLM Run node to use the Github Agent_
-
 ![VLM Run Workflow Example](assets/vlmrun-workflow.png)
 _Example workflow using the VLM Run node_
 
