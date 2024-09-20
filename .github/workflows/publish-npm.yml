@@ -34,6 +34,15 @@ jobs:
       - name: Dry-run publishing
         run: pnpm publish --dry-run
 
+      - name: Check NPM Token
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "NPM_TOKEN is not set."
+            exit 1
+          else
+            echo "NPM_TOKEN is set."
+          fi
+
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
