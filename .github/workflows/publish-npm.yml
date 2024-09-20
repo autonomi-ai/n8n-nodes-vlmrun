@@ -34,6 +34,9 @@ jobs:
       - name: Dry-run publishing
         run: pnpm publish --dry-run
 
+      - name: Authenticate npm
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
       - name: Check token and Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
