@@ -26,7 +26,7 @@ import { vlmRunOperations, vlmRunOptions, vlmRunResources } from './VlmRunDescri
 
 export class VlmRun implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'VLM.run',
+		displayName: 'VLM Run',
 		name: 'vlmRun',
 		icon: 'file:vlm-run.svg',
 		group: ['transform'],
@@ -34,7 +34,7 @@ export class VlmRun implements INodeType {
 		subtitle: '={{$parameter["operation"]',
 		description: 'Interact with VLM.run API',
 		defaults: {
-			name: 'VLM.run',
+			name: 'VLM Run',
 		},
 		inputs: ['main'],
 		outputs: ['main'],
