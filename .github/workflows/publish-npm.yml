@@ -13,10 +13,12 @@ jobs:
     environment: prod
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.1.1
+
+      - run: corepack enable
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: '20'
 
@@ -29,7 +31,10 @@ jobs:
       - name: Build the package
         run: pnpm build
 
+      - name: Dry-run publishing
+        run: pnpm publish --dry-run
+
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish
+        run: pnpm publish --access public
