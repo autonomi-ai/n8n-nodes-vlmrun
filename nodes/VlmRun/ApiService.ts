@@ -1,5 +1,5 @@
 import { IExecuteFunctions, IDataObject, NodeOperationError } from 'n8n-workflow';
-import { baseUrl, MAX_ATTEMPTS, RETRY_DELAY } from './config';
+import { MAX_ATTEMPTS, RETRY_DELAY } from './config';
 import FormData from 'form-data';
 import {
 	DocumentRequest,
@@ -18,12 +18,18 @@ async function getCommonHeaders(ef: IExecuteFunctions, contentType: 'json' | 'fo
 	};
 }
 
+async function getBaseUrl(ef: IExecuteFunctions): Promise<string> {
+	const credentials = (await ef.getCredentials('vlmRunApi')) as { apiBaseUrl: string };
+	return credentials.apiBaseUrl.trim();
+}
+
 export async function uploadFile(
 	ef: IExecuteFunctions,
 	buffer: any,
 	fileName: string,
 ): Promise<FileResponse> {
 	const headers = await getCommonHeaders(ef, 'form');
+	const baseUrl = await getBaseUrl(ef);
 
 	const form = new FormData();
 	form.append('file', buffer, { filename: fileName });
@@ -48,6 +54,7 @@ export async function uploadFile(
 
 export async function getFiles(ef: IExecuteFunctions): Promise<FileResponse[]> {
 	const headers = await getCommonHeaders(ef);
+	const baseUrl = await getBaseUrl(ef);
 	const skip = 0;
 	const limit = 10;
 
@@ -77,6 +84,7 @@ export async function generateDocumentRequest(
 	request: DocumentRequest,
 ): Promise<PredictionResponse> {
 	const headers = await getCommonHeaders(executeFunctions);
+	const baseUrl = await getBaseUrl(executeFunctions);
 	console.log('Generating document...');
 	try {
 		const generateResponse = await executeFunctions.helpers.httpRequest({
@@ -109,6 +117,7 @@ export async function getDocumentResponse(
 	documentId: string,
 ): Promise<IDataObject> {
 	const headers = await getCommonHeaders(executeFunctions);
+	const baseUrl = await getBaseUrl(executeFunctions);
 
 	console.log(`Getting document response for - ${documentId}`);
 	try {
@@ -160,6 +169,7 @@ export async function generateImageRequest(
 	request: ImageRequest,
 ): Promise<PredictionResponse> {
 	const headers = await getCommonHeaders(ef);
+	const baseUrl = await getBaseUrl(ef);
 
 	const payload = {
 		image: `data:${request.mimeType};base64,${request.image}`,
@@ -191,6 +201,7 @@ export async function generateWebpageRequest(
 	request: WebpagePredictionRequest,
 ): Promise<PredictionResponse> {
 	const headers = await getCommonHeaders(ef);
+	const baseUrl = await getBaseUrl(ef);
 
 	const payload = {
 		url: request.url,

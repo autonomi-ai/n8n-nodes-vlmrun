@@ -2,7 +2,7 @@ import { IAuthenticateGeneric, ICredentialType, INodeProperties } from 'n8n-work
 
 export class VlmRunApi implements ICredentialType {
 	name = 'vlmRunApi';
-	displayName = 'VLM.run API';
+	displayName = 'VLM Run API';
 	documentationUrl = 'https://docs.vlm.run/api-reference/v1/health';
 	properties: INodeProperties[] = [
 		{
@@ -13,6 +13,12 @@ export class VlmRunApi implements ICredentialType {
 				password: true,
 			},
 			default: '',
+		},
+		{
+			displayName: 'API Base Url',
+			name: 'apiBaseUrl',
+			type: 'string',
+			default: 'https://api.vlm.run/v1',
 		},
 	];
 

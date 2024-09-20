@@ -23,7 +23,8 @@ export const vlmRunResources: INodeProperties = {
 			value: Resource.FILE,
 		},
 	],
-	default: Resource.DOCUMENT_AI,
+	default: 'documentAi',
+	noDataExpression: true,
 };
 
 export const vlmRunOperations: INodeProperties[] = [
@@ -50,11 +51,12 @@ export const vlmRunOperations: INodeProperties[] = [
 				value: Operation.PRESENTATION_PARSER,
 			},
 			{
-				name: 'AI-assisted Form Filling',
+				name: 'AI Assisted Form Filling',
 				value: Operation.FORM_FILLING,
 			},
 		],
-		default: Operation.RESUME_PARSER,
+		default: 'resumeParser',
+		noDataExpression: true,
 	},
 	{
 		displayName: 'Operation',
@@ -71,7 +73,8 @@ export const vlmRunOperations: INodeProperties[] = [
 				value: Operation.IMAGE_CAPTIONING,
 			},
 		],
-		default: Operation.IMAGE_CAPTIONING,
+		default: 'imageCaptioning',
+		noDataExpression: true,
 	},
 	{
 		displayName: 'Operation',
@@ -88,7 +91,8 @@ export const vlmRunOperations: INodeProperties[] = [
 				value: Operation.FILE_LIST,
 			},
 		],
-		default: Operation.FILE_LIST,
+		default: 'fileList',
+		noDataExpression: true,
 	},
 
 	{
@@ -110,7 +114,8 @@ export const vlmRunOperations: INodeProperties[] = [
 				value: Operation.LINKEDIN_AGENT,
 			},
 		],
-		default: Operation.GITHUB_AGENT,
+		default: 'githubAgent',
+		noDataExpression: true,
 	},
 ];
 
@@ -158,6 +163,7 @@ export const vlmRunOptions: INodeProperties[] = [
 		],
 		default: 'vlm-1',
 		description: 'The model to use for processing',
+		noDataExpression: true,
 	},
 	{
 		displayName: 'Mode',
