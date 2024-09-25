@@ -123,7 +123,7 @@ export async function getDocumentResponse(
 	try {
 		const documentResponse = await executeFunctions.helpers.request({
 			method: 'GET',
-			url: `${baseUrl}/document/${documentId}`,
+			url: `${baseUrl}/response/${documentId}`,
 			headers: headers,
 			json: true,
 		});
