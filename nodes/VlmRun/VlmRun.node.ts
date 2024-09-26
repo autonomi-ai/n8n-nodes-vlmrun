@@ -5,14 +5,18 @@ import {
 	IDataObject,
 	INodeTypeDescription,
 	NodeOperationError,
+	IBinaryData,
 } from 'n8n-workflow';
 import {
 	generateDocumentRequest,
 	generateImageRequest,
 	generateWebpageRequest,
-	getDocumentResponseWithRetry,
+	getResponseWithRetry,
 	getFiles,
 	uploadFile,
+	generateAudioRequest,
+	generateDocumentEmbedding,
+	generateImageEmbedding,
 } from './ApiService';
 import {
 	DocumentRequest,
@@ -21,6 +25,7 @@ import {
 	ImageRequest,
 	OperationToDomain,
 	WebpagePredictionRequest,
+	AudioRequest,
 } from './types';
 import { vlmRunOperations, vlmRunOptions, vlmRunResources } from './VlmRunDescription';
 
@@ -92,10 +97,45 @@ export class VlmRun implements INodeType {
 						}
 
 						// Step 3: Check response every RETRY_DELAY milliseconds for MAX_ATTEMPTS
-						const documentResponse = await getDocumentResponseWithRetry(this, initialResponse.id);
+						const documentResponse = await getResponseWithRetry(this, initialResponse.id);
 
 						returnData.push({
 							json: documentResponse,
+						});
+					}
+				} else if (resource === Resource.AUDIO_AI) {
+					if (operation === Operation.AUDIO_TRANSCRIPTION) {
+						const model = this.getNodeParameter('model', 0) as string;
+						console.log('Started Operation - ', operation);
+						const item = items[i];
+
+						const { buffer, fileName } = await processFile(this, item, i);
+
+						// Step 1: Upload file
+						const fileResponse = await uploadFile(this, buffer, fileName);
+						this.sendMessageToUI('File uploaded...');
+
+						// Step 2: Generate structured output
+						const audioRequest: AudioRequest = {
+							fileId: fileResponse.id,
+							model: model,
+							domain: OperationToDomain[operation],
+							batch: false,
+						};
+						const initialResponse = await generateAudioRequest(this, audioRequest);
+						console.log('Initial Response - ', initialResponse);
+						if (initialResponse.status === 'completed') {
+							returnData.push({
+								json: initialResponse,
+							});
+							continue;
+						}
+
+						// Step 3: Check response every RETRY_DELAY milliseconds for MAX_ATTEMPTS
+						const audioResponse = await getResponseWithRetry(this, initialResponse.id);
+
+						returnData.push({
+							json: audioResponse,
 						});
 					}
 				} else if (resource === Resource.IMAGE_AI) {
@@ -105,14 +145,17 @@ export class VlmRun implements INodeType {
 					) {
 						console.log('Started Operation - ', operation);
 						const item = items[i];
-						const imageResponse = await processImage(this, item);
+						const imageResponse = await imageRequest(this, item);
 						returnData.push({
 							json: imageResponse,
 						});
 					}
 				} else if (resource === Resource.AGENT_AI) {
 					const model = this.getNodeParameter('model', 0) as string;
-					if (operation === Operation.GITHUB_AGENT) {
+					if (
+						operation === Operation.GITHUB_AGENT ||
+						operation === Operation.MARKET_RESEARCH_AGENT
+					) {
 						console.log('Started Operation - ', operation);
 						const url = this.getNodeParameter('url', 0) as string;
 						const mode = this.getNodeParameter('mode', 0) as 'fast' | 'accurate';
@@ -128,12 +171,62 @@ export class VlmRun implements INodeType {
 							json: webpageResponse,
 						});
 					}
+				} else if (resource === Resource.EXPERIMENTAL) {
+					const model = this.getNodeParameter('model', 0) as string;
+					if (operation === Operation.DOCUMENT_EMBEDDING) {
+						console.log('Started Operation - ', operation);
+						const item = items[i];
+
+						const { buffer, fileName } = await processFile(this, item, i);
+
+						// Step 1: Upload file
+						const fileResponse = await uploadFile(this, buffer, fileName);
+						this.sendMessageToUI('File uploaded...');
+
+						// Step 2: Generate structured output
+						const documentRequest: DocumentRequest = {
+							fileId: fileResponse.id,
+							model: model,
+							batch: false,
+						};
+						const initialResponse = await generateDocumentEmbedding(this, documentRequest);
+						console.log('Initial Response - ', initialResponse);
+						if (initialResponse.status === 'completed') {
+							returnData.push({
+								json: initialResponse,
+							});
+							continue;
+						}
+
+						// Step 3: Check response every RETRY_DELAY milliseconds for MAX_ATTEMPTS
+						const documentResponse = await getResponseWithRetry(this, initialResponse.id);
+
+						returnData.push({
+							json: documentResponse,
+						});
+					} else if (operation === Operation.IMAGE_EMBEDDING) {
+						console.log('Started Operation - ', operation);
+						const item = items[i];
+						const imageResponse = await imageEmbedding(this, item);
+						returnData.push({
+							json: imageResponse,
+						});
+					}
 				} else if (resource === Resource.FILE) {
 					if (operation === Operation.FILE_LIST) {
 						const files = await getFiles(this);
 						returnData.push({
 							json: { files: files },
 						});
+					} else if (operation === Operation.FILE_UPLOAD) {
+						console.log('Started Operation - ', operation);
+						const item = items[i];
+						const { buffer, fileName } = await processFile(this, item, i);
+						const fileResponse = await uploadFile(this, buffer, fileName);
+						returnData.push({
+							json: fileResponse,
+						});
+						this.sendMessageToUI('File uploaded...');
 					}
 				}
 			} catch (error) {
@@ -173,15 +266,20 @@ async function processFile(
 	return { buffer, fileName };
 }
 
-async function processImage(ef: IExecuteFunctions, item: INodeExecutionData): Promise<IDataObject> {
-	const model = ef.getNodeParameter('model', 0) as string;
-	const operation = ef.getNodeParameter('operation', 0) as string;
-
+async function processImage(ef: IExecuteFunctions, item: INodeExecutionData): Promise<IBinaryData> {
 	const binaryData = item.binary?.data;
 
 	if (!binaryData) {
 		throw new NodeOperationError(ef.getNode(), 'No binary data found!');
 	}
+	return binaryData;
+}
+
+async function imageRequest(ef: IExecuteFunctions, item: INodeExecutionData): Promise<IDataObject> {
+	const model = ef.getNodeParameter('model', 0) as string;
+	const operation = ef.getNodeParameter('operation', 0) as string;
+
+	const binaryData = await processImage(ef, item);
 	const imageRequest: ImageRequest = {
 		image: binaryData.data,
 		mimeType: binaryData.mimeType,
@@ -190,4 +288,21 @@ async function processImage(ef: IExecuteFunctions, item: INodeExecutionData): Pr
 	};
 	console.log('imageRequest - ', imageRequest);
 	return await generateImageRequest(ef, imageRequest);
+}
+
+async function imageEmbedding(
+	ef: IExecuteFunctions,
+	item: INodeExecutionData,
+): Promise<IDataObject> {
+	const model = ef.getNodeParameter('model', 0) as string;
+
+	const binaryData = await processImage(ef, item);
+
+	const imageRequest: ImageRequest = {
+		image: binaryData.data,
+		mimeType: binaryData.mimeType,
+		model: model,
+	};
+	console.log('imageEmbeddingRequest - ', imageRequest);
+	return await generateImageEmbedding(ef, imageRequest);
 }
