@@ -5,6 +5,7 @@ export interface DocumentRequest {
 	model: string;
 	domain?: Domain;
 	batch?: boolean;
+	session_id?: string;
 }
 
 export interface ImageRequest {
@@ -14,6 +15,8 @@ export interface ImageRequest {
 	model: string;
 	domain?: Domain;
 }
+
+export interface AudioRequest extends DocumentRequest {}
 
 export interface PredictionResponse extends IDataObject {
 	id: string;
@@ -41,9 +44,11 @@ export interface WebpagePredictionRequest {
 
 export const Resource = {
 	DOCUMENT_AI: 'documentAi',
+	AUDIO_AI: 'audioAi',
 	IMAGE_AI: 'imageAi',
 	AGENT_AI: 'agentAi',
 	FILE: 'file',
+	EXPERIMENTAL: 'experimental',
 };
 
 export const Operation = {
@@ -54,9 +59,14 @@ export const Operation = {
 	IMAGE_CATALOGING: 'imageCataloging',
 	IMAGE_CAPTIONING: 'imageCaptioning',
 	FILE_LIST: 'fileList',
+	FILE_UPLOAD: 'fileUpload',
 	GITHUB_AGENT: 'githubAgent',
 	LINKEDIN_AGENT: 'linkedinAgent',
+	MARKET_RESEARCH_AGENT: 'marketResearchAgent',
 	WEB_GENERATION: 'webGeneration',
+	AUDIO_TRANSCRIPTION: 'audioTranscription',
+	IMAGE_EMBEDDING: 'imageEmbedding',
+	DOCUMENT_EMBEDDING: 'documentEmbedding',
 };
 
 export enum Domain {
@@ -104,6 +114,7 @@ export enum Domain {
 	// Experimental / web + social
 	WebEcommerceProductCatalog = 'web.ecommerce-product-catalog',
 	WebGithubDeveloperStats = 'web.github-developer-stats',
+	WebMarketResearch = 'web.market-research',
 	SocialTwitterCard = 'social.twitter-card',
 
 	// Experimental / multi-modal RAG
@@ -120,4 +131,5 @@ export const OperationToDomain = {
 	[Operation.IMAGE_CAPTIONING]: Domain.DocumentGenerative,
 	// [Operation.IMAGE_CAPTIONING]: Domain.ImageCaptioning,
 	[Operation.GITHUB_AGENT]: Domain.WebGithubDeveloperStats,
+	[Operation.MARKET_RESEARCH_AGENT]: Domain.WebMarketResearch,
 };
