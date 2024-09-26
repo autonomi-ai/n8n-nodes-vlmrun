@@ -58,6 +58,16 @@ n8n
 
 Refer to our [documentation on creating nodes](https://docs.n8n.io/integrations/creating-nodes/) for detailed information on building your own nodes.
 
+## Screenshots
+
+Here are some screenshots of the n8n-nodes-vlmrun in action:
+
+![VLM Run Node Overview](assets/vlmrun-overview.png)
+_Overview of the VLM Run node in n8n_
+
+![VLM Run Workflow Example](assets/vlmrun-workflow.png)
+_Example workflow using the VLM Run node_
+
 ## License
 
 [MIT](https://github.com/n8n-io/n8n-nodes-starter/blob/master/LICENSE.md)
