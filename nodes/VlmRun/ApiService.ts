@@ -1,4 +1,9 @@
-import { IExecuteFunctions, IDataObject, NodeOperationError } from 'n8n-workflow';
+import {
+	IExecuteFunctions,
+	IDataObject,
+	NodeOperationError,
+	IHttpRequestMethods,
+} from 'n8n-workflow';
 import { MAX_ATTEMPTS, RETRY_DELAY } from './config';
 import FormData from 'form-data';
 import {
@@ -326,4 +331,131 @@ export async function generateWebpageRequest(
 			throw new Error('Failed to generate webpage: ' + error.message);
 		}
 	}
+}
+
+export async function makeCustomApiCall(ef: IExecuteFunctions) {
+	let url = ef.getNodeParameter('url', 0) as string;
+	const isHeaderRequired = ef.getNodeParameter('isHeaderRequired', 0) as boolean;
+	const isQueryParamRequired = ef.getNodeParameter('isQueryParamRequired', 0) as boolean;
+	let isBodyRequired = false;
+
+	if (ef.getNodeParameter('operation', 0) == 'POST') {
+		isBodyRequired = ef.getNodeParameter('isBodyRequired', 0) as boolean;
+	}
+
+	const credentials = (await ef.getCredentials('vlmRunApi')) as { apiKey: string };
+
+	let headers;
+	let typeofData: string;
+	let queryParams;
+	let headersObj: Record<string, any> = {};
+	let body;
+	let formData;
+	const baseUrl = await getBaseUrl(ef);
+	url = `${baseUrl}${url}`;
+
+	// Validate the URL
+	if (!url.startsWith('http://') && !url.startsWith('https://')) {
+		console.log("URL exception: ", url);
+		throw new NodeOperationError(
+			ef,
+			'Invalid URL. Please include the protocol (http:// or https://).',
+		);
+	}
+
+	if (isHeaderRequired) {
+		headers = (ef.getNodeParameter('headers', 0) as any).header;
+
+		if (!headers) {
+			throw new NodeOperationError(ef, 'Header is required.');
+		}
+
+		console.log("Headers: ", headers);
+
+		headers.forEach((header: any) => {
+			const headerKeyLower = header.key.toLowerCase();
+			if (!(headerKeyLower === 'content-type')) {
+				headersObj[header.key] = header.value;
+			}
+		});
+	}
+
+	if (isQueryParamRequired) {
+		queryParams = (ef.getNodeParameter('params', 0) as any).param;
+
+		if (!queryParams) {
+			throw new NodeOperationError(ef, 'Query params are required.');
+		}
+
+		console.log("QueryParams: ", queryParams);
+
+		const queryString = queryParams
+			.map(
+				(param: any) =>
+					`${encodeURIComponent(param.key)}=${encodeURIComponent(param.value)}`,
+			)
+			.join('&');
+		url = queryString ? `${url}?${queryString}` : url;
+	}
+
+	if (isBodyRequired) {
+		typeofData = ef.getNodeParameter('typeofData', 0) as string;
+
+		if (typeofData === 'jsonData') {
+			let bodyData = (ef.getNodeParameter('jsonBody', 0) as any).json;
+			if (!bodyData) {
+				throw new NodeOperationError(ef, "Provide reuqest body.");
+			}
+
+			const jsonBody: Record<string, any> = {};
+			bodyData.forEach((item: { key: string; value: any }) => {
+				if (typeof item.value === 'string') {
+					try {
+						jsonBody[item.key] = JSON.parse(item.value);
+					} catch {
+						jsonBody[item.key] = item.value;
+					}
+				} else {
+					jsonBody[item.key] = item.value;
+				}
+			});
+
+			body = JSON.stringify(jsonBody);
+		} else if (typeofData === 'formData') {
+
+			let bodyData = (ef.getNodeParameter('formBody', 0) as any).form;
+			if (!bodyData) {
+				throw new NodeOperationError(ef, "Provide reuqest body.");
+			}
+
+			console.log("Form Body", bodyData);
+
+			const fileBuffer = ef.getInputData()[0].binary?.file;
+
+			formData = {
+				file: {
+					value: Buffer.from(fileBuffer!.data, 'base64'),
+					options: {
+						filename: fileBuffer!.fileName,
+						contentType: fileBuffer!.mimeType,
+					},
+				},
+			};
+		}
+	}
+
+	headersObj['Authorization'] = `Bearer ${credentials.apiKey}`;
+
+	const requestOption = {
+		method: ef.getNodeParameter('operation', 0) as IHttpRequestMethods,
+		url,
+		headers: headersObj,
+		body,
+		formData,
+		json: true,
+	}
+
+	const response = await ef.helpers.request(requestOption);
+
+	return response;
 }
