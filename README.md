@@ -42,8 +42,9 @@ pnpm link --global
 n8n
 cd ~/.n8n
 mkdir custom
+cd custom
 pnpm init
-pnpm link --global n8n-nodes-vlmrun
+pnpm link --global @vlm-run/n8n-nodes-vlmrun
 
 (restart n8n)
 n8n
