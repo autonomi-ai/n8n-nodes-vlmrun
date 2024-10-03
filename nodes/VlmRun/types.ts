@@ -16,7 +16,7 @@ export interface ImageRequest {
 	domain?: Domain;
 }
 
-export interface AudioRequest extends DocumentRequest { }
+export interface AudioRequest extends DocumentRequest {}
 
 export interface PredictionResponse extends IDataObject {
 	id: string;

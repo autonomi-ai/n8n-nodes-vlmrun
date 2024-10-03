@@ -187,14 +187,14 @@ export const vlmRunOperations: INodeProperties[] = [
 		},
 		options: [
 			{
-				name: 'GET',
+				name: 'Custom GET',
 				value: Operation.GET,
-				displayName: 'Perform a GET call.'
+				displayName: 'Perform a GET call.',
 			},
 			{
-				name: 'POST',
+				name: 'Custom POST',
 				value: Operation.POST,
-				displayName: 'Perform a POST call.'
+				displayName: 'Perform a POST call.',
 			},
 		],
 		default: 'GET',
@@ -310,7 +310,6 @@ export const vlmRunOptions: INodeProperties[] = [
 	},
 ];
 
-
 export const httpOperation: INodeProperties[] = [
 	{
 		displayName: 'URL',
@@ -332,7 +331,7 @@ export const httpOperation: INodeProperties[] = [
 		type: 'boolean',
 		default: false,
 		required: true,
-		description: 'Do you need to send headers?',
+		description: 'Whether to send headers with the request',
 		displayOptions: {
 			show: {
 				resource: ['http'],
@@ -364,7 +363,7 @@ export const httpOperation: INodeProperties[] = [
 						displayName: 'Key',
 						name: 'key',
 						type: 'string',
-						default: 'Key',
+						default: '',
 						required: true,
 						description: 'Header key',
 					},
@@ -372,7 +371,7 @@ export const httpOperation: INodeProperties[] = [
 						displayName: 'Value',
 						name: 'value',
 						type: 'string',
-						default: 'Value',
+						default: '',
 						required: true,
 						description: 'Header value',
 					},
@@ -386,7 +385,7 @@ export const httpOperation: INodeProperties[] = [
 		type: 'boolean',
 		default: false,
 		required: true,
-		description: 'Do you need to send query params?',
+		description: 'Whether to send query parameters with the request',
 		displayOptions: {
 			show: {
 				resource: ['http'],
@@ -400,7 +399,7 @@ export const httpOperation: INodeProperties[] = [
 		description: "The request's query parameters",
 		displayOptions: {
 			show: {
-				isQueryParamRequired: [true]
+				isQueryParamRequired: [true],
 			},
 		},
 		required: true,
@@ -413,7 +412,7 @@ export const httpOperation: INodeProperties[] = [
 						displayName: 'Key',
 						name: 'key',
 						type: 'string',
-						default: 'Key',
+						default: '',
 						required: true,
 						description: 'Key of query parameter',
 					},
@@ -421,7 +420,7 @@ export const httpOperation: INodeProperties[] = [
 						displayName: 'Value',
 						name: 'value',
 						type: 'string',
-						default: 'Value',
+						default: '',
 						required: true,
 						description: 'Value of query parameter',
 					},
@@ -431,7 +430,7 @@ export const httpOperation: INodeProperties[] = [
 		type: 'fixedCollection',
 		typeOptions: {
 			multipleValues: true,
-			multipleValueButtonText: 'Add Parameter'
+			multipleValueButtonText: 'Add Parameter',
 		},
 	},
 	{
@@ -440,7 +439,7 @@ export const httpOperation: INodeProperties[] = [
 		type: 'boolean',
 		default: false,
 		required: true,
-		description: 'Do you need to send request body?',
+		description: 'Whether to send a request body',
 		displayOptions: {
 			show: {
 				resource: ['http'],
@@ -455,7 +454,7 @@ export const httpOperation: INodeProperties[] = [
 		description: 'Select type of data to send [JSON, Form Data]',
 		displayOptions: {
 			show: {
-				isBodyRequired: [true]
+				isBodyRequired: [true],
 			},
 		},
 		options: [
@@ -493,7 +492,7 @@ export const httpOperation: INodeProperties[] = [
 						displayName: 'Key',
 						name: 'key',
 						type: 'string',
-						default: 'Key',
+						default: '',
 						required: true,
 						description: 'Key of JSON property',
 					},
@@ -501,7 +500,7 @@ export const httpOperation: INodeProperties[] = [
 						displayName: 'Value',
 						name: 'value',
 						type: 'string',
-						default: 'Value',
+						default: '',
 						required: true,
 						description: 'Value of JSON property',
 					},
@@ -555,7 +554,7 @@ export const httpOperation: INodeProperties[] = [
 		],
 		type: 'fixedCollection',
 		typeOptions: {
-			multipleValueButtonText: 'Add field'
+			multipleValueButtonText: 'Add field',
 		},
 	},
 ];
