@@ -17,6 +17,7 @@ import {
 	generateAudioRequest,
 	generateDocumentEmbedding,
 	generateImageEmbedding,
+	makeCustomApiCall,
 } from './ApiService';
 import {
 	DocumentRequest,
@@ -27,7 +28,7 @@ import {
 	WebpagePredictionRequest,
 	AudioRequest,
 } from './types';
-import { vlmRunOperations, vlmRunOptions, vlmRunResources } from './VlmRunDescription';
+import { vlmRunOperations, vlmRunOptions, vlmRunResources, httpOperation } from './VlmRunDescription';
 
 export class VlmRun implements INodeType {
 	description: INodeTypeDescription = {
@@ -50,7 +51,7 @@ export class VlmRun implements INodeType {
 			},
 		],
 
-		properties: [vlmRunResources, ...vlmRunOperations, ...vlmRunOptions],
+		properties: [vlmRunResources, ...vlmRunOperations, ...vlmRunOptions, ...httpOperation],
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
@@ -228,6 +229,12 @@ export class VlmRun implements INodeType {
 						});
 						this.sendMessageToUI('File uploaded...');
 					}
+				} else if (resource === Resource.HTTP) {
+					const response = await makeCustomApiCall(this);
+
+					returnData.push({
+						json: response,
+					});
 				}
 			} catch (error) {
 				if (this.continueOnFail()) {
