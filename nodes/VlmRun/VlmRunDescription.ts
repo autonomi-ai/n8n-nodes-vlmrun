@@ -30,6 +30,10 @@ export const vlmRunResources: INodeProperties = {
 			name: 'File',
 			value: Resource.FILE,
 		},
+		{
+			name: 'HTTP',
+			value: Resource.HTTP,
+		},
 	],
 	default: 'documentAi',
 	noDataExpression: true,
@@ -124,7 +128,6 @@ export const vlmRunOperations: INodeProperties[] = [
 		default: 'fileList',
 		noDataExpression: true,
 	},
-
 	{
 		displayName: 'Operation',
 		name: 'operation',
@@ -171,6 +174,30 @@ export const vlmRunOperations: INodeProperties[] = [
 			},
 		],
 		default: 'imageEmbedding',
+		noDataExpression: true,
+	},
+	{
+		displayName: 'Operation',
+		name: 'operation',
+		type: 'options',
+		displayOptions: {
+			show: {
+				resource: [Resource.HTTP],
+			},
+		},
+		options: [
+			{
+				name: 'Custom GET',
+				value: Operation.GET,
+				displayName: 'Perform a GET call.',
+			},
+			{
+				name: 'Custom POST',
+				value: Operation.POST,
+				displayName: 'Perform a POST call.',
+			},
+		],
+		default: 'GET',
 		noDataExpression: true,
 	},
 ];
@@ -280,5 +307,254 @@ export const vlmRunOptions: INodeProperties[] = [
 		],
 		default: 'accurate',
 		description: 'The mode to use for web generation',
+	},
+];
+
+export const httpOperation: INodeProperties[] = [
+	{
+		displayName: 'URL',
+		name: 'url',
+		type: 'string',
+		default: '',
+		placeholder: 'e.g. /files, /models',
+		required: true,
+		description: 'The URL to send the request to',
+		displayOptions: {
+			show: {
+				resource: ['http'],
+			},
+		},
+	},
+	{
+		displayName: 'Send Header',
+		name: 'isHeaderRequired',
+		type: 'boolean',
+		default: false,
+		required: true,
+		description: 'Whether to send headers with the request',
+		displayOptions: {
+			show: {
+				resource: ['http'],
+			},
+		},
+	},
+	{
+		displayName: 'Headers',
+		name: 'headers',
+		type: 'fixedCollection',
+		typeOptions: {
+			multipleValues: true,
+			multipleValueButtonText: 'Add Header',
+		},
+		default: {},
+		required: true,
+		description: 'Headers to send with the request',
+		displayOptions: {
+			show: {
+				isHeaderRequired: [true],
+			},
+		},
+		options: [
+			{
+				name: 'header',
+				displayName: 'Header',
+				values: [
+					{
+						displayName: 'Key',
+						name: 'key',
+						type: 'string',
+						default: '',
+						required: true,
+						description: 'Header key',
+					},
+					{
+						displayName: 'Value',
+						name: 'value',
+						type: 'string',
+						default: '',
+						required: true,
+						description: 'Header value',
+					},
+				],
+			},
+		],
+	},
+	{
+		displayName: 'Send Query Params',
+		name: 'isQueryParamRequired',
+		type: 'boolean',
+		default: false,
+		required: true,
+		description: 'Whether to send query parameters with the request',
+		displayOptions: {
+			show: {
+				resource: ['http'],
+			},
+		},
+	},
+	{
+		displayName: 'Query Parameters',
+		name: 'params',
+		default: {},
+		description: "The request's query parameters",
+		displayOptions: {
+			show: {
+				isQueryParamRequired: [true],
+			},
+		},
+		required: true,
+		options: [
+			{
+				name: 'param',
+				displayName: 'Parameters',
+				values: [
+					{
+						displayName: 'Key',
+						name: 'key',
+						type: 'string',
+						default: '',
+						required: true,
+						description: 'Key of query parameter',
+					},
+					{
+						displayName: 'Value',
+						name: 'value',
+						type: 'string',
+						default: '',
+						required: true,
+						description: 'Value of query parameter',
+					},
+				],
+			},
+		],
+		type: 'fixedCollection',
+		typeOptions: {
+			multipleValues: true,
+			multipleValueButtonText: 'Add Parameter',
+		},
+	},
+	{
+		displayName: 'Send Body',
+		name: 'isBodyRequired',
+		type: 'boolean',
+		default: false,
+		required: true,
+		description: 'Whether to send a request body',
+		displayOptions: {
+			show: {
+				resource: ['http'],
+				operation: ['POST'],
+			},
+		},
+	},
+	{
+		displayName: 'Type of Data',
+		name: 'typeofData',
+		default: 'jsonData',
+		description: 'Select type of data to send [JSON, Form Data]',
+		displayOptions: {
+			show: {
+				isBodyRequired: [true],
+			},
+		},
+		options: [
+			{
+				name: 'JSON',
+				value: 'jsonData',
+			},
+			{
+				name: 'Form Data',
+				value: 'formData',
+			},
+		],
+		required: true,
+		type: 'options',
+	},
+	{
+		displayName: 'JSON Object',
+		name: 'jsonBody',
+		default: {},
+		required: true,
+		description: "The request's JSON properties",
+		displayOptions: {
+			show: {
+				resource: ['http'],
+				operation: ['POST'],
+				typeofData: ['jsonData'],
+			},
+		},
+		options: [
+			{
+				name: 'json',
+				displayName: 'Json Body',
+				values: [
+					{
+						displayName: 'Key',
+						name: 'key',
+						type: 'string',
+						default: '',
+						required: true,
+						description: 'Key of JSON property',
+					},
+					{
+						displayName: 'Value',
+						name: 'value',
+						type: 'string',
+						default: '',
+						required: true,
+						description: 'Value of JSON property',
+					},
+				],
+			},
+		],
+		type: 'fixedCollection',
+		typeOptions: {
+			multipleValues: true,
+			multipleValueButtonText: 'Add Field',
+		},
+	},
+	{
+		displayName: 'Form Data',
+		name: 'formBody',
+		default: {},
+		required: true,
+		description: "The request's form data properties",
+		displayOptions: {
+			show: {
+				resource: ['http'],
+				operation: ['POST'],
+				typeofData: ['formData'],
+			},
+		},
+		options: [
+			{
+				name: 'form',
+				displayName: 'Form Data',
+				values: [
+					{
+						displayName: 'Key',
+						name: 'key',
+						type: 'string',
+						default: '',
+						placeholder: 'Key of the file parameter',
+						required: true,
+						description: 'Key of form data',
+					},
+					{
+						displayName: 'Value',
+						name: 'value',
+						type: 'string',
+						default: '',
+						placeholder: 'Enter a binary file',
+						required: true,
+						description: 'Value of form data',
+					},
+				],
+			},
+		],
+		type: 'fixedCollection',
+		typeOptions: {
+			multipleValueButtonText: 'Add field',
+		},
 	},
 ];

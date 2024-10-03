@@ -49,6 +49,7 @@ export const Resource = {
 	AGENT_AI: 'agentAi',
 	FILE: 'file',
 	EXPERIMENTAL: 'experimental',
+	HTTP: 'http',
 };
 
 export const Operation = {
@@ -67,6 +68,8 @@ export const Operation = {
 	AUDIO_TRANSCRIPTION: 'audioTranscription',
 	IMAGE_EMBEDDING: 'imageEmbedding',
 	DOCUMENT_EMBEDDING: 'documentEmbedding',
+	GET: 'GET',
+	POST: 'POST',
 };
 
 export enum Domain {
