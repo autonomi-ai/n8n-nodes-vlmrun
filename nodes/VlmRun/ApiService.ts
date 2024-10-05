@@ -334,29 +334,23 @@ export async function generateWebpageRequest(
 }
 
 export async function makeCustomApiCall(ef: IExecuteFunctions) {
-	let url = ef.getNodeParameter('url', 0) as string;
 	const isHeaderRequired = ef.getNodeParameter('isHeaderRequired', 0) as boolean;
 	const isQueryParamRequired = ef.getNodeParameter('isQueryParamRequired', 0) as boolean;
-	let isBodyRequired = false;
-
-	if (ef.getNodeParameter('operation', 0) == 'POST') {
-		isBodyRequired = ef.getNodeParameter('isBodyRequired', 0) as boolean;
-	}
-
 	const credentials = (await ef.getCredentials('vlmRunApi')) as { apiKey: string };
 
-	let headers;
-	let typeofData: string;
-	let queryParams;
+	let url = ef.getNodeParameter('url', 0) as string;
+	let isBodyRequired = false;
 	let headersObj: Record<string, any> = {};
 	let body;
 	let formData;
-	const baseUrl = await getBaseUrl(ef);
-	url = `${baseUrl}${url}`;
 
-	// Validate the URL
+	if (ef.getNodeParameter('operation', 0) === 'POST') {
+		isBodyRequired = ef.getNodeParameter('isBodyRequired', 0) as boolean;
+	}
+
+	url = `${await getBaseUrl(ef)}${url}`;
+
 	if (!url.startsWith('http://') && !url.startsWith('https://')) {
-		console.log("URL exception: ", url);
 		throw new NodeOperationError(
 			ef,
 			'Invalid URL. Please include the protocol (http:// or https://).',
@@ -364,71 +358,79 @@ export async function makeCustomApiCall(ef: IExecuteFunctions) {
 	}
 
 	if (isHeaderRequired) {
-		headers = (ef.getNodeParameter('headers', 0) as any).header;
+		const headers = (ef.getNodeParameter('headers', 0) as any).header;
 
 		if (!headers) {
 			throw new NodeOperationError(ef, 'Header is required.');
 		}
 
-		console.log("Headers: ", headers);
-
 		headers.forEach((header: any) => {
 			const headerKeyLower = header.key.toLowerCase();
-			if (!(headerKeyLower === 'content-type')) {
+			if (headerKeyLower !== 'content-type') {
 				headersObj[header.key] = header.value;
 			}
 		});
 	}
 
 	if (isQueryParamRequired) {
-		queryParams = (ef.getNodeParameter('params', 0) as any).param;
+		const queryParams = (ef.getNodeParameter('params', 0) as any).param;
 
 		if (!queryParams) {
 			throw new NodeOperationError(ef, 'Query params are required.');
 		}
 
-		console.log("QueryParams: ", queryParams);
-
 		const queryString = queryParams
-			.map(
-				(param: any) =>
-					`${encodeURIComponent(param.key)}=${encodeURIComponent(param.value)}`,
-			)
+			.map((param: any) => `${encodeURIComponent(param.key)}=${encodeURIComponent(param.value)}`)
 			.join('&');
+
 		url = queryString ? `${url}?${queryString}` : url;
 	}
 
 	if (isBodyRequired) {
-		typeofData = ef.getNodeParameter('typeofData', 0) as string;
+		const typeofData = ef.getNodeParameter('typeofData', 0) as string;
 
 		if (typeofData === 'jsonData') {
-			let bodyData = (ef.getNodeParameter('jsonBody', 0) as any).json;
-			if (!bodyData) {
-				throw new NodeOperationError(ef, "Provide reuqest body.");
+			const bodyJsonSpecification = ef.getNodeParameter('specifyBody', 0) as string;
+
+			if (!bodyJsonSpecification) {
+				throw new NodeOperationError(ef, 'Required body specification');
 			}
 
-			const jsonBody: Record<string, any> = {};
-			bodyData.forEach((item: { key: string; value: any }) => {
-				if (typeof item.value === 'string') {
-					try {
-						jsonBody[item.key] = JSON.parse(item.value);
-					} catch {
+			if (bodyJsonSpecification === 'usingFields') {
+				const bodyData = (ef.getNodeParameter('jsonKeyValueBody', 0) as any).json;
+
+				if (!bodyData) {
+					throw new NodeOperationError(ef, 'Provide reuqest body.');
+				}
+
+				const jsonBody: Record<string, any> = {};
+
+				bodyData.forEach((item: { key: string; value: any }) => {
+					if (typeof item.value === 'string') {
+						try {
+							jsonBody[item.key] = JSON.parse(item.value);
+						} catch {
+							jsonBody[item.key] = item.value;
+						}
+					} else {
 						jsonBody[item.key] = item.value;
 					}
-				} else {
-					jsonBody[item.key] = item.value;
+				});
+
+				body = JSON.stringify(jsonBody);
+			} else if (bodyJsonSpecification === 'usingJson') {
+				body = ef.getNodeParameter('rawJsonBody', 0) as string;
+
+				if (!body) {
+					throw new NodeOperationError(ef, 'Provide request body.');
 				}
-			});
-
-			body = JSON.stringify(jsonBody);
-		} else if (typeofData === 'formData') {
-
-			let bodyData = (ef.getNodeParameter('formBody', 0) as any).form;
-			if (!bodyData) {
-				throw new NodeOperationError(ef, "Provide reuqest body.");
 			}
+		} else if (typeofData === 'formData') {
+			const bodyData = (ef.getNodeParameter('formBody', 0) as any).form;
 
-			console.log("Form Body", bodyData);
+			if (!bodyData) {
+				throw new NodeOperationError(ef, 'Provide request body.');
+			}
 
 			const fileBuffer = ef.getInputData()[0].binary?.file;
 
@@ -453,9 +455,7 @@ export async function makeCustomApiCall(ef: IExecuteFunctions) {
 		body,
 		formData,
 		json: true,
-	}
+	};
 
-	const response = await ef.helpers.request(requestOption);
-
-	return response;
+	return await ef.helpers.request(requestOption);
 }
