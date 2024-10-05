@@ -28,7 +28,7 @@ import {
 	WebpagePredictionRequest,
 	AudioRequest,
 } from './types';
-import { vlmRunOperations, vlmRunOptions, vlmRunResources, httpOperation } from './VlmRunDescription';
+import { vlmRunOperations, vlmRunOptions, vlmRunResources, httpCustomOperation } from './VlmRunDescription';
 
 export class VlmRun implements INodeType {
 	description: INodeTypeDescription = {
@@ -51,7 +51,7 @@ export class VlmRun implements INodeType {
 			},
 		],
 
-		properties: [vlmRunResources, ...vlmRunOperations, ...vlmRunOptions, ...httpOperation],
+		properties: [vlmRunResources, ...vlmRunOperations, ...vlmRunOptions, ...httpCustomOperation],
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {

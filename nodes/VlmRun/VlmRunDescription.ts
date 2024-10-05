@@ -310,7 +310,172 @@ export const vlmRunOptions: INodeProperties[] = [
 	},
 ];
 
-export const httpOperation: INodeProperties[] = [
+const createKeyValuePair = (
+	groupName: string,
+	keyName: string,
+	valueName: string,
+	keyPlaceholder: string = 'Enter key',
+	valuePlaceholder: string = 'Enter value',
+): INodeProperties[] => {
+	const createProperty = (
+		displayName: string,
+		name: string,
+		placeholder: string,
+	): INodeProperties => ({
+		displayName,
+		name,
+		type: 'string',
+		default: '',
+		placeholder,
+		required: true,
+		description: `${displayName} of the ${groupName}`,
+	});
+
+	return [
+		createProperty('Key', keyName, keyPlaceholder),
+		createProperty('Value', valueName, valuePlaceholder),
+	];
+};
+
+const headerCollection: INodeProperties = {
+	displayName: 'Headers',
+	name: 'headers',
+	type: 'fixedCollection',
+	placeholder: 'Add Header',
+	typeOptions: {
+		multipleValues: true,
+	},
+	default: {},
+	required: true,
+	description: 'Headers to send with the request',
+	displayOptions: {
+		show: {
+			isHeaderRequired: [true],
+		},
+	},
+	options: [
+		{
+			name: 'header',
+			displayName: 'Header',
+			values: [...createKeyValuePair('header', 'key', 'value')],
+		},
+	],
+};
+
+const queryParamCollection: INodeProperties = {
+	displayName: 'Query Parameters',
+	name: 'params',
+	type: 'fixedCollection',
+	placeholder: 'Add Parameter',
+	typeOptions: {
+		multipleValues: true,
+	},
+	default: {},
+	required: true,
+	description: "The request's query parameters",
+	displayOptions: {
+		show: {
+			isQueryParamRequired: [true],
+		},
+	},
+	options: [
+		{
+			name: 'param',
+			displayName: 'Parameter',
+			values: [...createKeyValuePair('query parameter', 'key', 'value')],
+		},
+	],
+};
+
+const jsonKeyValueCollection: INodeProperties = {
+	displayName: 'Body Parameter',
+	name: 'jsonKeyValueBody',
+	type: 'fixedCollection',
+	placeholder: 'Add Field',
+	typeOptions: {
+		multipleValues: true,
+	},
+	default: {},
+	required: true,
+	description: "The request's JSON properties",
+	displayOptions: {
+		show: {
+			resource: [Resource.HTTP],
+			operation: [Operation.POST],
+			typeofData: ['jsonData'],
+			specifyBody: ['usingFields'],
+		},
+	},
+	options: [
+		{
+			name: 'json',
+			displayName: 'Body Parameter',
+			displayOptions: {
+				show: {
+					specifyBody: ['usingFields'],
+				},
+			},
+			values: [...createKeyValuePair('JSON property', 'key', 'value')],
+		},
+	],
+};
+
+const formDataCollection: INodeProperties = {
+	displayName: 'Form Data',
+	name: 'formBody',
+	type: 'fixedCollection',
+	placeholder: 'Add Field',
+	default: {},
+	required: true,
+	description: "The request's form data properties",
+	displayOptions: {
+		show: {
+			resource: [Resource.HTTP],
+			operation: [Operation.POST],
+			typeofData: ['formData'],
+		},
+	},
+	options: [
+		{
+			name: 'form',
+			displayName: 'Form Data',
+			values: [
+				...createKeyValuePair(
+					'form data',
+					'key',
+					'value',
+					'Key of the file parameter',
+					'Enter a binary file',
+				),
+			],
+		},
+	],
+};
+
+const bodyContentOptions = [
+	{
+		name: 'JSON',
+		value: 'jsonData',
+	},
+	{
+		name: 'Form Data',
+		value: 'formData',
+	},
+];
+
+const specifyBodyOptions = [
+	{
+		name: 'Using Fields Below',
+		value: 'usingFields',
+	},
+	{
+		name: 'Using JSON',
+		value: 'usingJson',
+	},
+];
+
+export const httpCustomOperation: INodeProperties[] = [
+	// URL Field
 	{
 		displayName: 'URL',
 		name: 'url',
@@ -321,10 +486,11 @@ export const httpOperation: INodeProperties[] = [
 		description: 'The URL to send the request to',
 		displayOptions: {
 			show: {
-				resource: ['http'],
+				resource: [Resource.HTTP],
 			},
 		},
 	},
+	// Send Header Toggle
 	{
 		displayName: 'Send Header',
 		name: 'isHeaderRequired',
@@ -334,51 +500,13 @@ export const httpOperation: INodeProperties[] = [
 		description: 'Whether to send headers with the request',
 		displayOptions: {
 			show: {
-				resource: ['http'],
+				resource: [Resource.HTTP],
 			},
 		},
 	},
-	{
-		displayName: 'Headers',
-		name: 'headers',
-		type: 'fixedCollection',
-		typeOptions: {
-			multipleValues: true,
-			multipleValueButtonText: 'Add Header',
-		},
-		default: {},
-		required: true,
-		description: 'Headers to send with the request',
-		displayOptions: {
-			show: {
-				isHeaderRequired: [true],
-			},
-		},
-		options: [
-			{
-				name: 'header',
-				displayName: 'Header',
-				values: [
-					{
-						displayName: 'Key',
-						name: 'key',
-						type: 'string',
-						default: '',
-						required: true,
-						description: 'Header key',
-					},
-					{
-						displayName: 'Value',
-						name: 'value',
-						type: 'string',
-						default: '',
-						required: true,
-						description: 'Header value',
-					},
-				],
-			},
-		],
-	},
+	// Headers Collection
+	headerCollection,
+	// Send Query Params Toggle
 	{
 		displayName: 'Send Query Params',
 		name: 'isQueryParamRequired',
@@ -388,51 +516,13 @@ export const httpOperation: INodeProperties[] = [
 		description: 'Whether to send query parameters with the request',
 		displayOptions: {
 			show: {
-				resource: ['http'],
+				resource: [Resource.HTTP],
 			},
 		},
 	},
-	{
-		displayName: 'Query Parameters',
-		name: 'params',
-		default: {},
-		description: "The request's query parameters",
-		displayOptions: {
-			show: {
-				isQueryParamRequired: [true],
-			},
-		},
-		required: true,
-		options: [
-			{
-				name: 'param',
-				displayName: 'Parameters',
-				values: [
-					{
-						displayName: 'Key',
-						name: 'key',
-						type: 'string',
-						default: '',
-						required: true,
-						description: 'Key of query parameter',
-					},
-					{
-						displayName: 'Value',
-						name: 'value',
-						type: 'string',
-						default: '',
-						required: true,
-						description: 'Value of query parameter',
-					},
-				],
-			},
-		],
-		type: 'fixedCollection',
-		typeOptions: {
-			multipleValues: true,
-			multipleValueButtonText: 'Add Parameter',
-		},
-	},
+	// Query Parameters Collection
+	queryParamCollection,
+	// Send Body Toggle
 	{
 		displayName: 'Send Body',
 		name: 'isBodyRequired',
@@ -442,119 +532,55 @@ export const httpOperation: INodeProperties[] = [
 		description: 'Whether to send a request body',
 		displayOptions: {
 			show: {
-				resource: ['http'],
-				operation: ['POST'],
+				resource: [Resource.HTTP],
+				operation: [Operation.POST],
 			},
 		},
 	},
+	// Body Content Type
 	{
-		displayName: 'Type of Data',
+		displayName: 'Body Content Type',
 		name: 'typeofData',
-		default: 'jsonData',
+		type: 'options',
+		default: '',
 		description: 'Select type of data to send [JSON, Form Data]',
+		options: bodyContentOptions,
+		required: true,
 		displayOptions: {
 			show: {
 				isBodyRequired: [true],
 			},
 		},
-		options: [
-			{
-				name: 'JSON',
-				value: 'jsonData',
-			},
-			{
-				name: 'Form Data',
-				value: 'formData',
-			},
-		],
-		required: true,
-		type: 'options',
 	},
+	// Specify Body
 	{
-		displayName: 'JSON Object',
-		name: 'jsonBody',
-		default: {},
-		required: true,
-		description: "The request's JSON properties",
+		displayName: 'Specify Body',
+		name: 'specifyBody',
+		type: 'options',
+		default: '',
+		options: specifyBodyOptions,
 		displayOptions: {
 			show: {
-				resource: ['http'],
-				operation: ['POST'],
 				typeofData: ['jsonData'],
 			},
 		},
-		options: [
-			{
-				name: 'json',
-				displayName: 'Json Body',
-				values: [
-					{
-						displayName: 'Key',
-						name: 'key',
-						type: 'string',
-						default: '',
-						required: true,
-						description: 'Key of JSON property',
-					},
-					{
-						displayName: 'Value',
-						name: 'value',
-						type: 'string',
-						default: '',
-						required: true,
-						description: 'Value of JSON property',
-					},
-				],
-			},
-		],
-		type: 'fixedCollection',
-		typeOptions: {
-			multipleValues: true,
-			multipleValueButtonText: 'Add Field',
-		},
+		description: 'Choose how to specify the JSON body',
 	},
+	// JSON Body via Fields
+	jsonKeyValueCollection,
+	// JSON Body via JSON Input
 	{
-		displayName: 'Form Data',
-		name: 'formBody',
-		default: {},
-		required: true,
-		description: "The request's form data properties",
+		displayName: 'JSON',
+		name: 'rawJsonBody',
+		type: 'json',
+		default: '',
+		description: 'Provide JSON content for the request body',
 		displayOptions: {
 			show: {
-				resource: ['http'],
-				operation: ['POST'],
-				typeofData: ['formData'],
+				specifyBody: ['usingJson'],
 			},
-		},
-		options: [
-			{
-				name: 'form',
-				displayName: 'Form Data',
-				values: [
-					{
-						displayName: 'Key',
-						name: 'key',
-						type: 'string',
-						default: '',
-						placeholder: 'Key of the file parameter',
-						required: true,
-						description: 'Key of form data',
-					},
-					{
-						displayName: 'Value',
-						name: 'value',
-						type: 'string',
-						default: '',
-						placeholder: 'Enter a binary file',
-						required: true,
-						description: 'Value of form data',
-					},
-				],
-			},
-		],
-		type: 'fixedCollection',
-		typeOptions: {
-			multipleValueButtonText: 'Add field',
 		},
 	},
+	// Form Data Collection
+	formDataCollection,
 ];
