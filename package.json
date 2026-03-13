@@ -61,5 +61,10 @@
     "ts-jest": "^29.2.5",
     "typescript": "^5.5.3",
     "sqlite3": "^5.1.7"
+  },
+  "pnpm": {
+    "overrides": {
+      "form-data": "4.0.4"
+    }
   }
 }
