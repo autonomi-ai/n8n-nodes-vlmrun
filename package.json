@@ -47,6 +47,11 @@
   "dependencies": {
     "form-data": "4.0.4"
   },
+  "pnpm": {
+    "overrides": {
+      "axios": "1.8.2"
+    }
+  },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.14",
